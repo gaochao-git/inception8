@@ -1,0 +1,139 @@
+[mysqld]
+# ---- Server ----
+basedir                         = /path/to/inception_binary
+port                            = 3307
+socket                          = /data/inception8/tmp/inception.sock
+pid-file                        = /data/inception8/tmp/inception.pid
+bind-address                    = 0.0.0.0
+character-set-server            = utf8mb4
+require-secure-transport        = OFF
+log-error                       = /data/inception8/logs/inception_error.log
+datadir                         = /data/inception8/data
+
+# ===========================================================================
+# Inception Audit Rules (OFF / WARNING / ERROR)
+# ===========================================================================
+
+# ---- 库级别 ----
+inception_check_drop_database            = ERROR      # DROP DATABASE 检查（含远程存在性检查）
+
+# ---- 表级别 ----
+inception_check_primary_key              = ERROR      # 建表必须有主键
+inception_check_table_comment            = ERROR      # 建表必须有表注释
+inception_check_engine_innodb            = ERROR      # 必须使用 InnoDB 引擎
+inception_check_create_select            = OFF        # 禁止 CREATE TABLE ... SELECT
+inception_check_partition                = WARNING    # 分区表检查
+inception_check_autoincrement            = WARNING    # 自增列必须为 UNSIGNED INT/BIGINT
+inception_check_autoincrement_init_value = WARNING    # 自增列初始值必须为 1
+inception_check_autoincrement_name       = OFF        # 自增列必须命名为 id
+inception_check_drop_table               = WARNING    # DROP TABLE 检查
+inception_check_truncate_table           = WARNING    # TRUNCATE TABLE 检查
+inception_check_merge_alter_table        = WARNING    # 同一表多次 ALTER 应合并为一条语句
+inception_check_varchar_shrink           = WARNING    # VARCHAR 长度缩小检查（可能截断数据）
+inception_check_lossy_type_change        = WARNING    # 有损整型转换检查（如 BIGINT→INT）
+inception_check_decimal_change           = OFF        # DECIMAL 精度/小数位变更检查
+inception_check_max_columns              = 0          # 单表最大列数（0=不限制）
+
+# ---- 列级别 ----
+inception_check_column_comment           = ERROR      # 列必须有注释
+inception_check_nullable                 = WARNING    # 列允许 NULL 时发出警告
+inception_check_not_null_default         = OFF        # NOT NULL 列必须有 DEFAULT 值
+inception_check_column_default_value     = OFF        # 新建列必须有 DEFAULT 值
+inception_check_blob_type                = OFF        # 使用 BLOB/TEXT 类型时发出警告
+inception_check_enum_type                = OFF        # 使用 ENUM 类型时发出警告
+inception_check_set_type                 = OFF        # 使用 SET 类型时发出警告
+inception_check_bit_type                 = OFF        # 使用 BIT 类型时发出警告
+inception_check_json_type                = OFF        # 使用 JSON 类型时发出警告
+inception_check_json_blob_text_default   = ERROR      # JSON/BLOB/TEXT 显式 DEFAULT 检查
+inception_check_timestamp_default        = WARNING    # TIMESTAMP 列必须有 DEFAULT 值
+inception_check_column_charset           = OFF        # 禁止列级别指定字符集（应使用表级默认）
+inception_check_max_char_length          = 64         # CHAR 最大长度，超过建议改用 VARCHAR
+inception_check_max_column_name_length   = 64         # 列名最大长度（0=不限制）
+
+# ---- 索引级别 ----
+inception_check_index_prefix             = WARNING    # 索引命名必须以 idx_/uniq_ 开头
+inception_check_foreign_key              = OFF        # 禁止使用外键
+inception_check_duplicate_index          = WARNING    # 检测冗余/重复索引
+inception_check_max_indexes              = 16         # 单表最大索引数量
+inception_check_max_index_parts          = 5          # 单个索引最大列数
+inception_check_max_primary_key_parts    = 5          # 主键最大列数
+inception_check_index_length             = WARNING    # 索引长度检查（单列和总长度）
+inception_check_index_column_max_bytes   = 767        # 单列索引最大字节数
+inception_check_index_total_max_bytes    = 3072       # 单索引总长度最大字节数
+
+# ---- 命名规范 ----
+inception_check_identifier               = OFF       # 表名/列名必须为小写+下划线格式
+inception_check_identifier_keyword       = OFF        # 表名/列名不能使用 MySQL 保留关键字
+inception_check_max_table_name_length    = 64         # 表名/库名最大长度（0=不限制）
+
+# ---- DML ----
+inception_check_delete                   = OFF        # DELETE 语句检查 (OFF/WARNING/ERROR)
+inception_check_dml_where                = ERROR      # DML(UPDATE/DELETE) 必须有 WHERE 条件
+inception_check_dml_limit                = OFF        # DML 中使用 LIMIT 时发出警告
+inception_check_insert_column            = ERROR      # INSERT 必须指定列名列表
+inception_check_insert_values_match      = ERROR      # INSERT 列数与值数匹配检查
+inception_check_insert_duplicate_column  = ERROR      # INSERT 重复列检查
+inception_check_column_exists            = ERROR      # INSERT/UPDATE 引用的列必须存在于远程表（支持批量表识别）
+inception_check_select_star              = OFF        # SELECT * 检查
+inception_check_orderby_in_dml           = WARNING    # UPDATE/DELETE 中使用 ORDER BY 时发出警告
+inception_check_orderby_rand             = WARNING    # SELECT ORDER BY RAND() 全表扫描警告
+inception_check_max_update_rows          = 10000      # UPDATE/DELETE 影响行数阈值，超过则警告
+inception_check_in_count                 = 0          # IN 子句最大元素数（0=不限制），超过则警告
+
+# ---- TiDB 专用规则（仅当 db_type=TiDB 时生效） ----
+inception_check_tidb_merge_alter        = ERROR      # 单条 ALTER 不允许包含多个操作
+inception_check_tidb_varchar_shrink     = ERROR      # 不允许缩小 VARCHAR 长度
+inception_check_tidb_decimal_change     = ERROR      # 不允许修改 DECIMAL 精度/小数位
+inception_check_tidb_lossy_type_change  = ERROR      # 不允许有损类型转换（如 BIGINT→INT）
+inception_check_tidb_foreign_key        = ERROR      # 不允许使用外键（TiDB 不支持外键）
+
+# ===========================================================================
+# Inception Options (uncomment to enable)
+# ===========================================================================
+
+# ---- 执行前环境预检查 / 限流 ----
+inception_exec_check_read_only = ON      # EXECUTE 前检查目标库 @@global.read_only，命中即阻断
+inception_exec_max_threads_running = 0   # 目标库 Threads_running 上限（0=不检查）
+inception_exec_max_replication_delay = 0 # 从库复制延迟秒数上限（0=不检查）
+
+inception_osc_on              = OFF                  # 启用 pt-online-schema-change（未实现）
+inception_osc_bin_dir         = /usr/bin              # pt-osc 可执行文件目录
+inception_support_charset     = utf8,utf8mb4          # 允许的字符集白名单，逗号分隔
+inception_check_must_have_columns        = ERROR      # 必须包含的列检查级别（OFF/WARNING/ERROR）
+inception_must_have_columns   = id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT;create_time DATETIME NOT NULL COMMENT   # 建表必须包含的列
+inception_audit_log           = /data/inception8/logs/inception_audit.log   # 操作审计日志路径（JSONL 格式）
+
+# ===========================================================================
+# Inception Connection Defaults（magic_start 未指定 --user/--password 时的默认值）
+# ===========================================================================
+
+# inception_user                = root       # 默认远程连接用户名
+# inception_password            =            # 默认远程连接密码，支持明文或 AES: 前缀加密
+# inception_password_encrypt_key =           # AES 加密密钥，配合加密密码使用
+#
+# 加密密码配置步骤：
+#   1. 先在 my.cnf 中配置加密密钥：
+#      inception_password_encrypt_key = your_secret_key
+#
+#   2. 启动/重启 inception 后，连接 inception 执行加密命令：
+#      mysql> inception get encrypt_password 'your_real_password';
+#      +----------------------------------+
+#      | encrypted_password               |
+#      +----------------------------------+
+#      | AES:czbchvzWURzUisOHZJFKLw==     |
+#      +----------------------------------+
+#
+#   3. 将返回的加密密码填入 my.cnf（注意：含 = 号的值必须用双引号包裹）：
+#      inception_password = "AES:czbchvzWURzUisOHZJFKLw=="
+#
+#   4. 重启 inception 生效
+#
+# 完整配置示例：
+#   inception_user                 = root
+#   inception_password_encrypt_key = your_secret_key
+#   inception_password             = "AES:czbchvzWURzUisOHZJFKLw=="
+#
+# 说明：
+#   - 密码以 AES: 开头时自动解密，无前缀时按明文处理
+#   - magic_start 中的 --password=AES:xxx 同样支持加密密码
+#   - magic_start 中指定了 --user/--password 时覆盖此处默认值

@@ -1,0 +1,8 @@
+Inception8 — SQL Audit Server based on MySQL 8.0.25
+
+通过 magic 注释拦截 SQL 语句，按可配置规则进行审核，并可选在远程 MySQL/TiDB 上执行。
+
+文档：
+  编译部署  sql/inception/doc/OPS_GUIDE.md
+  功能参考  sql/inception/doc/README.md
+  开发指南  sql/inception/doc/DEV_GUIDE.md

@@ -139,6 +139,9 @@ struct InceptionContext {
   std::string user;
   std::string password;
   uint port = 3306;
+  bool explicit_host = false;
+  bool explicit_user = false;
+  bool explicit_port = false;
 
   /* Operation mode */
   OpMode mode = OpMode::CHECK;
@@ -213,6 +216,9 @@ struct InceptionContext {
     user.clear();
     password.clear();
     port = 3306;
+    explicit_host = false;
+    explicit_user = false;
+    explicit_port = false;
     mode = OpMode::CHECK;
     force = false;
     backup = true;

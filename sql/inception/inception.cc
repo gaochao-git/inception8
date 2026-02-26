@@ -151,6 +151,14 @@ static bool setup_inception_session(THD *thd) {
     return true;
   }
 
+  if ((ctx->mode == OpMode::CHECK || ctx->mode == OpMode::EXECUTE) &&
+      (!ctx->explicit_host || !ctx->explicit_user || !ctx->explicit_port)) {
+    my_printf_error(
+        ER_UNKNOWN_ERROR, "%s", MYF(0),
+        "CHECK/EXECUTE requires explicit --host, --user and --port in inception_magic_start");
+    return true;
+  }
+
   /* Auto-detect db type/version from remote when not explicitly provided. */
   maybe_detect_remote_db_profile(ctx);
 

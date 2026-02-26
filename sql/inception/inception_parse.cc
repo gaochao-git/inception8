@@ -81,12 +81,15 @@ static void parse_option(const char *key, size_t key_len, const char *val,
 
   if (match("host")) {
     ctx->host.assign(val, val_len);
+    ctx->explicit_host = true;
   } else if (match("user")) {
     ctx->user.assign(val, val_len);
+    ctx->explicit_user = true;
   } else if (match("password")) {
     ctx->password.assign(val, val_len);
   } else if (match("port")) {
     ctx->port = static_cast<uint>(strtoul(val, nullptr, 10));
+    ctx->explicit_port = true;
   } else if (match("enable-execute")) {
     if (val_len > 0 && val[0] == '1') ctx->mode = OpMode::EXECUTE;
   } else if (match("enable-check")) {
@@ -219,6 +222,10 @@ bool parse_inception_start(const char *query, size_t length,
   /* Decrypt password if it has "AES:" prefix */
   if (!ctx->password.empty())
     ctx->password = decrypt_password(ctx->password);
+
+  if (ctx->explicit_port && (ctx->port == 0 || ctx->port > 65535)) {
+    return true;
+  }
 
   ctx->active = true;
   return false;  // success

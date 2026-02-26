@@ -5053,8 +5053,7 @@ class TestAlterSubTypes:
         assert "OPTIONS" in alter_rows[0]["sql_type"]
 
     def test_ddl_algorithm_change_default_instant(self, test_db_name):
-        """CHANGE_DEFAULT algorithm follows detected MySQL version."""
-        _, _, major, _ = _detected_db_profile()
+        """CHANGE_DEFAULT should be INSTANT on supported MySQL versions."""
         remote_execute(f"CREATE DATABASE IF NOT EXISTS `{test_db_name}`")
         remote_execute(
             f"CREATE TABLE `{test_db_name}`.t1 ("
@@ -5069,8 +5068,7 @@ class TestAlterSubTypes:
         )
         alter_rows = [r for r in rows if "ALTER" in r["sql_text"]]
         assert len(alter_rows) > 0
-        expected = "INSTANT" if major >= 8 else "COPY"
-        assert alter_rows[0]["ddl_algorithm"] == expected
+        assert alter_rows[0]["ddl_algorithm"] == "INSTANT"
 
     def test_ddl_algorithm_options_engine_copy(self, test_db_name):
         """ALTER TABLE ENGINE=xxx → COPY."""

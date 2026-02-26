@@ -230,10 +230,12 @@ static MYSQL *connect_slave(const std::string &host, uint port,
  *   2. Seconds_Behind_Master on each slave (if opt_exec_max_replication_delay > 0)
  * Loops with 1-second sleep until all checks pass.
  */
-static void wait_for_remote_ready(MYSQL *mysql,
+static bool wait_for_remote_ready(MYSQL *mysql,
                                   std::vector<MYSQL *> &slave_conns,
                                   InceptionContext *ctx) {
   for (;;) {
+    if (ctx->killed.load()) return true;
+
     bool need_wait = false;
 
     /* Check Threads_running on primary */
@@ -306,6 +308,7 @@ static void wait_for_remote_ready(MYSQL *mysql,
     ts.tv_nsec = 0;
     nanosleep(&ts, nullptr);
   }
+  return false;
 }
 
 static bool parse_onoff_value(const char *v) {
@@ -360,7 +363,11 @@ static bool pre_execute_checks(MYSQL *mysql, std::vector<MYSQL *> &slave_conns,
 
   if (opt_exec_max_threads_running > 0 ||
       (!slave_conns.empty() && opt_exec_max_replication_delay > 0)) {
-    wait_for_remote_ready(mysql, slave_conns, ctx);
+    if (wait_for_remote_ready(mysql, slave_conns, ctx)) {
+      node->stage = STAGE_EXECUTED;
+      node->stage_status = "Killed by user";
+      return true;
+    }
   }
 
   return false;
